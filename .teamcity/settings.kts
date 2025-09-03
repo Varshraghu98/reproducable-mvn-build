@@ -1,16 +1,17 @@
 import jetbrains.buildServer.configs.kotlin.*
-import jetbrains.buildServer.configs.kotlin.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildSteps.maven
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
+import jetbrains.buildServer.configs.kotlin.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 
-version = "2025.07"
+// Use a conservative DSL version your server likely supports.
+// If your server is newer, it will still accept this.
+version = "2022.04"
 
 project {
-    // register VCS root and build type
     vcsRoot(RepoVcs)
     buildType(Build)
 }
@@ -20,11 +21,10 @@ object RepoVcs : GitVcsRoot({
     name = "reproducable-mvn-build"
     url = "https://github.com/Varshraghu98/reproducable-mvn-build.git"
     branch = "refs/heads/main"
-    // do checkout on the agent (we need a real .git)
-    checkoutPolicy = GitVcsRoot.CheckoutPolicy.ON_AGENT
-    // deterministic submodules at pinned SHAs
+
+    // Deterministic submodules at pinned SHAs
     param("teamcity.git.submoduleCheckout", "CHECKOUT")
-    // full history so any SHA can be fetched
+    // Full history so any SHA can be fetched
     param("teamcity.git.clone.depth", "0")
 })
 
@@ -36,21 +36,22 @@ object Build : BuildType({
         text(
                 "env.GIT_COMMIT",
                 "",
-                display = ParameterDisplay.PROMPT,
-                allowEmpty = false
+                display = ParameterDisplay.PROMPT
         ) {
-            // optional validation (works in recent DSL)
-            // remove this block if your server complains
-            regex = "[a-f0-9]{7,40}"
-            regexMessage = "Enter a valid git SHA (7–40 hex chars)"
+            // Older DSL-compatible validation
+            validation {
+                regex("[a-f0-9]{7,40}", "Enter a valid git SHA (7–40 hex chars)")
+            }
         }
     }
 
-    // checkout happens before steps
-    checkoutMode = CheckoutMode.ON_AGENT
-
     vcs {
         root(RepoVcs)
+
+        // Put checkout mode here (inside the vcs block)
+        checkoutMode = CheckoutMode.ON_AGENT
+
+        // Ensure a clean workspace each build
         cleanCheckout = true
     }
 
@@ -70,13 +71,14 @@ object Build : BuildType({
                 echo ">> Now at: $(git rev-parse HEAD)"
             """.trimIndent()
         }
-        // step 1: build reproducible zip
+
+        // step 1: build reproducible zip/jar
         maven {
             name = "Create maven package"
             goals = "-Dmaven.test.skip=true clean package"
         }
     }
 
-    triggers { vcs { } }
-    features { perfmon { } }
+    triggers { vcs {} }
+    features { perfmon {} }
 })
