@@ -1,0 +1,67 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.example</groupId>
+  <artifactId>repro-docs</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+  <name>repro-docs</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <!-- Reproducible builds -->
+    <!-- Maven reads this logical timestamp; we’ll set SOURCE_DATE_EPOCH at build time -->
+    <project.build.outputTimestamp>${maven.build.timestamp}</project.build.outputTimestamp>
+    <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Deterministic JAR metadata (good hygiene even if we don’t ship it) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.2</version>
+        <configuration>
+          <outputTimestamp>${project.build.outputTimestamp}</outputTimestamp>
+        </configuration>
+      </plugin>
+
+      <!-- Javadoc: avoid timestamps; fix encodings/locales -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.10.0</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+          <doclint>none</doclint>
+          <additionalJOptions>
+            <additionalJOption>-notimestamp</additionalJOption>
+            <additionalJOption>-locale</additionalJOption>
+            <additionalJOption>en</additionalJOption>
+          </additionalJOptions>
+        </configuration>
+      </plugin>
+
+      <!-- Exec helper: lets us print ${project.version} in CI later -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.1</version>
+      </plugin>
+    </plugins>
+  </build>
+</project>
