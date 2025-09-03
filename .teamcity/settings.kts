@@ -68,7 +68,7 @@ object Build : BuildType({
         maven {
             name = "Create maven package"
             id = "Create_maven_package"
-            goals = "-DskipTests clean package"
+            goals = "-Dmaven.test.skip=true clean package"
         }
     }
 
