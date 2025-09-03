@@ -8,9 +8,11 @@ target/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+.idea/vcs.xml
 *.iws
 *.iml
 *.ipr
+
 
 ### Eclipse ###
 .apt_generated
@@ -36,3 +38,14 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# TeamCity runtime (server + agent)
+data/
+logs/
+work/
+temp/
+tools/
+plugins/
+
+# If you keep Maven cache here (you currently bind ~/.m2, so probably not):
+.m2/
