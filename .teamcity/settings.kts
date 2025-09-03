@@ -5,11 +5,9 @@ import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 import jetbrains.buildServer.configs.kotlin.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 
-// Use a conservative DSL version your server likely supports.
-// If your server is newer, it will still accept this.
-version = "2022.04"
+// Conservative DSL version for broad compatibility
+version = "2020.2"
 
 project {
     vcsRoot(RepoVcs)
@@ -21,7 +19,6 @@ object RepoVcs : GitVcsRoot({
     name = "reproducable-mvn-build"
     url = "https://github.com/Varshraghu98/reproducable-mvn-build.git"
     branch = "refs/heads/main"
-
     // Deterministic submodules at pinned SHAs
     param("teamcity.git.submoduleCheckout", "CHECKOUT")
     // Full history so any SHA can be fetched
@@ -32,31 +29,21 @@ object Build : BuildType({
     name = "Build"
 
     params {
-        text(
-                name = "env.GIT_COMMIT",
-                value = "",
-                label = "Commit SHA",
-                display = ParameterDisplay.PROMPT,
-                readOnly = false,
-                allowEmpty = false,
-                regex = "[a-f0-9]{7,40}",
-                validationMessage = "Enter a valid git SHA (7–40 hex chars)"
-        )
+        // No validation, just a plain parameter you will fill when running the build
+        // text("env.GIT_COMMIT", "")  // if this overload causes issues, use param(...) below
+        param("env.GIT_COMMIT", "")
     }
-
 
     vcs {
         root(RepoVcs)
-
-        // Put checkout mode here (inside the vcs block)
-        checkoutMode = CheckoutMode.ON_AGENT
-
-        // Ensure a clean workspace each build
         cleanCheckout = true
+        // Preferred way:
+        checkoutMode = CheckoutMode.ON_AGENT
+        // If the line above errors on your server, comment it and use this fallback:
+        // param("teamcity.checkoutMode", "ON_AGENT")
     }
 
     steps {
-        // step 0: force the requested commit + deterministic submodules
         script {
             name = "Checkout specific commit"
             scriptContent = """
@@ -71,8 +58,6 @@ object Build : BuildType({
                 echo ">> Now at: $(git rev-parse HEAD)"
             """.trimIndent()
         }
-
-        // step 1: build reproducible zip/jar
         maven {
             name = "Create maven package"
             goals = "-Dmaven.test.skip=true clean package"
