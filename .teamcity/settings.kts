@@ -32,18 +32,18 @@ object Build : BuildType({
     name = "Build"
 
     params {
-        // Prompt for the commit SHA when you click "Run…"
         text(
-                "env.GIT_COMMIT",
-                "",
-                display = ParameterDisplay.PROMPT
-        ) {
-            // Older DSL-compatible validation
-            validation {
-                regex("[a-f0-9]{7,40}", "Enter a valid git SHA (7–40 hex chars)")
-            }
-        }
+                name = "env.GIT_COMMIT",
+                value = "",
+                label = "Commit SHA",
+                display = ParameterDisplay.PROMPT,
+                readOnly = false,
+                allowEmpty = false,
+                regex = "[a-f0-9]{7,40}",
+                validationMessage = "Enter a valid git SHA (7–40 hex chars)"
+        )
     }
+
 
     vcs {
         root(RepoVcs)
