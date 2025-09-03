@@ -37,13 +37,34 @@ object Build : BuildType({
 
     params {
         param("commitHash", "5d12199671ed549f6bd018c52017ac83526afa1f")
+        text("env.GIT_COMMIT", "", display = ParameterDisplay.PROMPT, allowEmpty = false,
+                regex = """[a-f0-9]{7,40}""", regexFailureMessage = "Enter a valid git SHA")
     }
 
+    // Checkout happens automatically BEFORE steps, set it to On Agent
+    checkoutMode = CheckoutMode.ON_AGENT
+
+
     vcs {
-        root(DslContext.settingsRoot)
+        root(HttpsGithubComVarshraghu98reproducableMvnBuildRefsHeadsMain)
+        cleanCheckout = true
     }
 
     steps {
+        script {
+            name = "Checkout specific commit"
+            scriptContent = """
+                set -euo pipefail
+                echo ">> Fetching and checking out %env.GIT_COMMIT%"
+                git fetch --all --tags --prune
+                git checkout --force %env.GIT_COMMIT%
+                if [ -f .gitmodules ]; then
+                  git submodule sync --recursive
+                  git submodule update --init --recursive --checkout
+                fi
+                echo ">> Now at: $(git rev-parse HEAD)"
+            """.trimIndent()
+        }
         maven {
             name = "Create maven package"
             id = "Create_maven_package"
