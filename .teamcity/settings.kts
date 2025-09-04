@@ -28,6 +28,10 @@ object RepoVcs : GitVcsRoot({
 object Build : BuildType({
     name = "Build"
 
+    // ✅ Publish the ZIP from target/
+    // Use a wildcard so version bumps don’t require DSL edits.
+    artifactRules = "target/repro-docs-*.zip"
+
     params {
         // No validation, just a plain parameter you will fill when running the build
         // text("env.GIT_COMMIT", "")  // if this overload causes issues, use param(...) below
