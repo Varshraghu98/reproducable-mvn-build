@@ -5,12 +5,15 @@
 
     <groupId>org.example</groupId>
     <artifactId>repro-docs</artifactId>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
     <name>repro-docs</name>
 
     <properties>
-        <!-- Which release-notes folder to package -->
-        <notes.version>1.0.0</notes.version>
+        <!-- Which release-notes folder to package  -->
+        <notes.version>latest</notes.version>
+
+        <!-- Reproducible archives: Maven  read this everywhere -->
+        <project.build.outputTimestamp>2025-01-01T00:00:00Z</project.build.outputTimestamp>
 
         <maven.compiler.release>17</maven.compiler.release>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -20,51 +23,29 @@
     <build>
         <plugins>
 
-            <!-- Expose git commit time as ${git.commit.time} -->
-            <plugin>
-                <groupId>io.github.git-commit-id</groupId>
-                <artifactId>git-commit-id-maven-plugin</artifactId>
-                <version>9.0.2</version>
-                <executions>
-                    <execution>
-                        <id>git-meta</id>
-                        <goals>
-                            <goal>revision</goal>
-                        </goals>
-                        <phase>initialize</phase>
-                    </execution>
-                </executions>
-                <configuration>
-                    <generateGitPropertiesFile>false</generateGitPropertiesFile>
-                    <dateFormat>yyyy-MM-dd'T'HH:mm:ssXXX</dateFormat>
-                    <dateFormatTimeZone>UTC</dateFormatTimeZone>
-                </configuration>
-            </plugin>
-
-            <!-- Generate reproducible Javadocs -->
+            <!-- Reproducible Javadocs -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.7.0</version>
                 <configuration>
                     <failOnError>true</failOnError>
-                    <source>17</source>
+                    <release>17</release>
                     <locale>en</locale>
                     <quiet>true</quiet>
+                    <notimestamp>true</notimestamp>
+                    <detectJavaApiLink>false</detectJavaApiLink>
+                    <doclint>none</doclint>
+                    <!-- lock timezone for any dates rendered in pages -->
                     <additionalJOptions>
                         <additionalJOption>-J-Duser.timezone=UTC</additionalJOption>
                     </additionalJOptions>
-                    <additionalOptions>-notimestamp</additionalOptions>
-                    <detectJavaApiLink>false</detectJavaApiLink>
-                    <doclint>none</doclint>
                 </configuration>
                 <executions>
                     <execution>
                         <id>make-javadoc</id>
                         <phase>prepare-package</phase>
-                        <goals>
-                            <goal>javadoc</goal>
-                        </goals>
+                        <goals><goal>javadoc</goal></goals>
                     </execution>
                 </executions>
             </plugin>
@@ -81,7 +62,8 @@
 
                     <finalName>${project.artifactId}-${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
-                    <outputTimestamp>${git.commit.time}</outputTimestamp>
+
+                    <!-- Do NOT set outputTimestamp here; it inherits project.build.outputTimestamp -->
 
                     <archive>
                         <manifestEntries>
@@ -94,12 +76,29 @@
                     <execution>
                         <id>make-dist-zip</id>
                         <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
+                        <goals><goal>single</goal></goals>
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Optional: strip extra ZIP/JAR metadata for maximal reproducibility -->
+            <!--
+            <plugin>
+              <groupId>io.github.zlika</groupId>
+              <artifactId>reproducible-build-maven-plugin</artifactId>
+              <version>0.16</version>
+              <executions>
+                <execution>
+                  <id>strip-archives</id>
+                  <phase>package</phase>
+                  <goals>
+                    <goal>strip-jar</goal>
+                    <goal>strip-zip</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+            -->
 
         </plugins>
     </build>

@@ -66,6 +66,33 @@ object Build : BuildType({
             name = "Create maven package"
             goals = "-Dmaven.test.skip=true clean package"
         }
+
+        script {
+            name = "Print SHA-256 of ZIP"
+            scriptContent = """
+             #!/usr/bin/env sh
+        set -eu
+
+        files=${'$'}(ls -1 target/repro-docs-*.zip 2>/dev/null || true)
+        if [ -z "${'$'}files" ]; then
+          echo "No ZIPs found under target/"; exit 1
+        fi
+
+        for f in ${'$'}files; do
+          if command -v sha256sum >/dev/null 2>&1; then
+            sum=${'$'}(sha256sum "${'$'}f" | cut -d ' ' -f1)
+          elif command -v shasum >/dev/null 2>&1; then
+            sum=${'$'}(shasum -a 256 "${'$'}f" | cut -d ' ' -f1)
+          elif command -v openssl >/dev/null 2>&1; then
+            sum=${'$'}(openssl dgst -sha256 -r "${'$'}f" | cut -d ' ' -f1)
+          else
+            echo "No SHA-256 tool found (sha256sum/shasum/openssl)"; exit 1
+          fi
+          echo "SHA256(${ '$' }f) = ${ '$' }sum"
+          printf "%s  %s\n" "${'$'}sum" "${'$'}(basename "${'$'}f")" > "${'$'}f.sha256"
+        done
+        """.trimIndent()
+        }
     }
 
     triggers { vcs {} }
