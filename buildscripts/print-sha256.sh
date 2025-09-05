@@ -1,10 +1,13 @@
 #!/usr/bin/env sh
 set -eu
 
-# Directory where Maven outputs the reproducible docs ZIP
-OUTPUT_DIR="${OUTPUT_DIR:-target}"
+# TeamCity checkout dir (passed from DSL); fallback to current dir
+CHECKOUT_DIR="${CHECKOUT_DIR:-$(pwd)}"
 
-# ZIP filename pattern for your assignment
+# Default output dir is the Maven target/ under the checkout
+OUTPUT_DIR="${OUTPUT_DIR:-$CHECKOUT_DIR/target}"
+
+# ZIP filename pattern for your assignment (wildcards OK)
 DOCS_PATTERN="${DOCS_PATTERN:-repro-docs-*.zip}"
 
 # Require sha256sum
@@ -13,17 +16,18 @@ if ! command -v sha256sum >/dev/null 2>&1; then
   exit 127
 fi
 
-# Build the file list using shell globbing (DO NOT quote DOCS_PATTERN here)
-set -- "$OUTPUT_DIR"/$DOCS_PATTERN
 
-# If the glob didn't match, $1 stays as the literal pattern
-if [ "$1" = "$OUTPUT_DIR"/$DOCS_PATTERN ]; then
-  echo "No reproducible docs ZIPs found under $OUTPUT_DIR/ matching $DOCS_PATTERN"
-  exit 1
+echo "Searching for ZIPs in: $OUTPUT_DIR (pattern: $DOCS_PATTERN)"
+
+
+matches=$(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "$DOCS_PATTERN" -print)
+
+if [ -z "$matches" ]; then
+  echo "No reproducible docs ZIPs found under $OUTPUT_DIR matching $DOCS_PATTERN"
 fi
 
 # Hash all matches
-for f in "$@"; do
+echo "$matches" | while IFS= read -r f; do
   [ -f "$f" ] || continue
   sum=$(sha256sum "$f" | awk '{print $1}')
   echo "SHA256($f) = $sum"
