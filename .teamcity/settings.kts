@@ -1,13 +1,13 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
-import jetbrains.buildServer.configs.kotlin.buildFeatures.sshAgent   // ← added
+import jetbrains.buildServer.configs.kotlin.buildFeatures.sshAgent
 import jetbrains.buildServer.configs.kotlin.buildSteps.maven
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 import jetbrains.buildServer.configs.kotlin.CheckoutMode
 
-// Conservative DSL version for broad compatibility
+
 version = "2020.2"
 
 project {
@@ -31,7 +31,6 @@ object RepoVcs : GitVcsRoot({
     // Prefer native SSH (agent-side) for consistency with sshAgent feature
     param("teamcity.git.useNativeSsh", "true")
 
-    // Use an uploaded SSH key (Project Settings → SSH Keys)
     authMethod = uploadedKey {
         uploadedKey = "tc-release-bot" // <-- your key name
     }

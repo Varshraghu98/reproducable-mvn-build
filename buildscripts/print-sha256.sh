@@ -10,13 +10,6 @@ OUTPUT_DIR="${OUTPUT_DIR:-$CHECKOUT_DIR/target}"
 # ZIP filename pattern for your assignment (wildcards OK)
 DOCS_PATTERN="${DOCS_PATTERN:-repro-docs-*.zip}"
 
-# Require sha256sum
-if ! command -v sha256sum >/dev/null 2>&1; then
-  echo "Error: 'sha256sum' not found. Install coreutils on the agent." >&2
-  exit 127
-fi
-
-
 echo "Searching for ZIPs in: $OUTPUT_DIR (pattern: $DOCS_PATTERN)"
 
 
