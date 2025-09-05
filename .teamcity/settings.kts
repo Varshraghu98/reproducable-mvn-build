@@ -77,7 +77,7 @@ object Build : BuildType({
         script {
             name = "SHA256 checksums"
             scriptContent = """
-                chmod +x scripts/print-sha256.sh
+                chmod +x buildscripts/print-sha256.sh
                 OUTPUT_DIR=target DOCS_PATTERN="repro-docs-*.zip" ./scripts/print-sha256.sh
             """.trimIndent()
         }
