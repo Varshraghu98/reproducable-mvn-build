@@ -1,5 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
+import jetbrains.buildServer.configs.kotlin.buildFeatures.sshAgent   // ← added
 import jetbrains.buildServer.configs.kotlin.buildSteps.maven
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
@@ -27,9 +28,12 @@ object RepoVcs : GitVcsRoot({
     // Full history so any arbitrary SHA can be checked out
     param("teamcity.git.clone.depth", "0")
 
+    // Prefer native SSH (agent-side) for consistency with sshAgent feature
+    param("teamcity.git.useNativeSsh", "true")
+
     // Use an uploaded SSH key (Project Settings → SSH Keys)
     authMethod = uploadedKey {
-        uploadedKey = "tc-release-bot" // <-- set to your key name
+        uploadedKey = "tc-release-bot" // <-- your key name
     }
 })
 
@@ -40,7 +44,7 @@ object Build : BuildType({
     artifactRules = "target/repro-docs-*.zip"
 
     params {
-        // Plain parameter; set this when running the build (e.g., a full SHA)
+        // Set this to a full commit SHA when starting the build
         param("env.GIT_COMMIT", "")
     }
 
@@ -58,7 +62,8 @@ object Build : BuildType({
             scriptContent = """
                 set -eu
                 echo ">> Fetching and checking out %env.GIT_COMMIT%"
-                git fetch --all --tags --prune
+                # Fetch just the required commit (and tags) into a local ref with the same SHA
+                git fetch --tags --prune origin +%env.GIT_COMMIT%:%env.GIT_COMMIT%
                 git checkout --force %env.GIT_COMMIT%
                 echo ">> Now at: $(git rev-parse HEAD)"
             """.trimIndent()
@@ -84,5 +89,9 @@ object Build : BuildType({
 
     features {
         perfmon {}
+        sshAgent {
+            // Loads the same key into ssh-agent for your shell steps
+            teamcitySshKey = "tc-release-bot"
+        }
     }
 })

@@ -63,8 +63,6 @@
                     <finalName>${project.artifactId}-${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
 
-                    <!-- Do NOT set outputTimestamp here; it inherits project.build.outputTimestamp -->
-
                     <archive>
                         <manifestEntries>
                             <Built-By/>
@@ -80,25 +78,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Optional: strip extra ZIP/JAR metadata for maximal reproducibility -->
-            <!--
-            <plugin>
-              <groupId>io.github.zlika</groupId>
-              <artifactId>reproducible-build-maven-plugin</artifactId>
-              <version>0.16</version>
-              <executions>
-                <execution>
-                  <id>strip-archives</id>
-                  <phase>package</phase>
-                  <goals>
-                    <goal>strip-jar</goal>
-                    <goal>strip-zip</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin>
-            -->
 
         </plugins>
     </build>
