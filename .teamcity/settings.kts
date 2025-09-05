@@ -16,34 +16,39 @@ project {
 
 object RepoVcs : GitVcsRoot({
     id("RepoVcs")
-    name = "reproducable-mvn-build"
-    url = "https://github.com/Varshraghu98/reproducable-mvn-build.git"
+    name = "reproducable-mvn-build (SSH)"
+    url = "git@github.com:Varshraghu98/reproducable-mvn-build.git"  // SSH URL
     branch = "refs/heads/main"
-    // Deterministic submodules at pinned SHAs
-    param("teamcity.git.submoduleCheckout", "CHECKOUT")
-    // Full history so any SHA can be fetched
+    branchSpec = """
+        +:refs/heads/*
+        +:refs/tags/*
+    """.trimIndent()
+
+    // Full history so any arbitrary SHA can be checked out
     param("teamcity.git.clone.depth", "0")
+
+    // Use an uploaded SSH key (Project Settings → SSH Keys)
+    authMethod = uploadedKey {
+        uploadedKey = "tc-release-bot" // <-- set to your key name
+    }
 })
 
 object Build : BuildType({
     name = "Build"
 
-    // ✅ Publish the ZIP from target/
-    // Use a wildcard so version bumps don’t require DSL edits.
+    // Publish the ZIP produced by Maven (version-agnostic)
     artifactRules = "target/repro-docs-*.zip"
 
     params {
-        // No validation, just a plain parameter you will fill when running the build
-        // text("env.GIT_COMMIT", "")  // if this overload causes issues, use param(...) below
+        // Plain parameter; set this when running the build (e.g., a full SHA)
         param("env.GIT_COMMIT", "")
     }
 
     vcs {
         root(RepoVcs)
         cleanCheckout = true
-        // Preferred way:
         checkoutMode = CheckoutMode.ON_AGENT
-        // If the line above errors on your server, comment it and use this fallback:
+        // If ON_AGENT enum is unavailable on your server, use:
         // param("teamcity.checkoutMode", "ON_AGENT")
     }
 
@@ -55,46 +60,29 @@ object Build : BuildType({
                 echo ">> Fetching and checking out %env.GIT_COMMIT%"
                 git fetch --all --tags --prune
                 git checkout --force %env.GIT_COMMIT%
-                if [ -f .gitmodules ]; then
-                  git submodule sync --recursive
-                  git submodule update --init --recursive --checkout
-                fi
                 echo ">> Now at: $(git rev-parse HEAD)"
             """.trimIndent()
         }
+
         maven {
             name = "Create maven package"
             goals = "-Dmaven.test.skip=true clean package"
         }
 
         script {
-            name = "Print SHA-256 of ZIP"
+            name = "SHA256 checksums"
             scriptContent = """
-             #!/usr/bin/env sh
-        set -eu
-
-        files=${'$'}(ls -1 target/repro-docs-*.zip 2>/dev/null || true)
-        if [ -z "${'$'}files" ]; then
-          echo "No ZIPs found under target/"; exit 1
-        fi
-
-        for f in ${'$'}files; do
-          if command -v sha256sum >/dev/null 2>&1; then
-            sum=${'$'}(sha256sum "${'$'}f" | cut -d ' ' -f1)
-          elif command -v shasum >/dev/null 2>&1; then
-            sum=${'$'}(shasum -a 256 "${'$'}f" | cut -d ' ' -f1)
-          elif command -v openssl >/dev/null 2>&1; then
-            sum=${'$'}(openssl dgst -sha256 -r "${'$'}f" | cut -d ' ' -f1)
-          else
-            echo "No SHA-256 tool found (sha256sum/shasum/openssl)"; exit 1
-          fi
-          echo "SHA256(${ '$' }f) = ${ '$' }sum"
-          printf "%s  %s\n" "${'$'}sum" "${'$'}(basename "${'$'}f")" > "${'$'}f.sha256"
-        done
-        """.trimIndent()
+                chmod +x scripts/print-sha256.sh
+                OUTPUT_DIR=target DOCS_PATTERN="repro-docs-*.zip" ./scripts/print-sha256.sh
+            """.trimIndent()
         }
     }
 
-    triggers { vcs {} }
-    features { perfmon {} }
+    triggers {
+        vcs {}
+    }
+
+    features {
+        perfmon {}
+    }
 })
