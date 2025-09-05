@@ -20,7 +20,7 @@
 
         <!-- 2) Release notes (set notes.version to v1.0.0 or latest in the POM) -->
         <fileSet>
-            <directory>${project.basedir}/release-notes/${notes.version}</directory>
+            <directory>${project.basedir}/vendor/release-notes/${notes.version}</directory>
             <outputDirectory>/docs/release-notes</outputDirectory>
             <fileMode>0644</fileMode>
             <directoryMode>0755</directoryMode>
