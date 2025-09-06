@@ -18,7 +18,7 @@
             <useDefaultExcludes>true</useDefaultExcludes>
         </fileSet>
 
-        <!-- 2) Release notes (set notes.version to v1.0.0 or latest in the POM) -->
+        <!-- 2) Release notes -->
         <fileSet>
             <directory>${project.basedir}/vendor/release-notes</directory>
             <outputDirectory>/docs/release-notes</outputDirectory>

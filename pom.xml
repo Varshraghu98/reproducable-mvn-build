@@ -9,10 +9,8 @@
     <name>repro-docs</name>
 
     <properties>
-        <!-- Which release-notes folder to package  -->
-        <notes.version>latest</notes.version>
 
-        <!-- Reproducible archives: Maven  read this everywhere -->
+        <!-- Reproducible archives: Maven reads this everywhere, as per suggestions from the official maven page -->
         <project.build.outputTimestamp>2025-01-01T00:00:00Z</project.build.outputTimestamp>
 
         <maven.compiler.release>17</maven.compiler.release>
@@ -22,8 +20,6 @@
 
     <build>
         <plugins>
-
-            <!-- Reproducible Javadocs -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -36,7 +32,6 @@
                     <notimestamp>true</notimestamp>
                     <detectJavaApiLink>false</detectJavaApiLink>
                     <doclint>none</doclint>
-                    <!-- lock timezone for any dates rendered in pages -->
                     <additionalJOptions>
                         <additionalJOption>-J-Duser.timezone=UTC</additionalJOption>
                     </additionalJOptions>
@@ -49,8 +44,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Assemble reproducible ZIP with Javadocs + release notes -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>

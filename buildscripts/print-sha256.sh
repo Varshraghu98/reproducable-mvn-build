@@ -1,17 +1,11 @@
 #!/usr/bin/env sh
 set -eu
 
-# TeamCity checkout dir (passed from DSL); fallback to current dir
 CHECKOUT_DIR="${CHECKOUT_DIR:-$(pwd)}"
-
-# Default output dir is the Maven target/ under the checkout
 OUTPUT_DIR="${OUTPUT_DIR:-$CHECKOUT_DIR/target}"
-
-# ZIP filename pattern for your assignment (wildcards OK)
 DOCS_PATTERN="${DOCS_PATTERN:-repro-docs-*.zip}"
 
 echo "Searching for ZIPs in: $OUTPUT_DIR (pattern: $DOCS_PATTERN)"
-
 
 matches=$(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "$DOCS_PATTERN" -print)
 
@@ -19,7 +13,6 @@ if [ -z "$matches" ]; then
   echo "No reproducible docs ZIPs found under $OUTPUT_DIR matching $DOCS_PATTERN"
 fi
 
-# Hash all matches
 echo "$matches" | while IFS= read -r f; do
   [ -f "$f" ] || continue
   sum=$(sha256sum "$f" | awk '{print $1}')

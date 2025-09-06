@@ -25,10 +25,8 @@ object RepoVcs : GitVcsRoot({
         +:refs/tags/*
     """.trimIndent()
 
-    // Full history so any arbitrary SHA can be checked out
     param("teamcity.git.clone.depth", "0")
 
-    // Prefer native SSH (agent-side) for consistency with sshAgent feature
     param("teamcity.git.useNativeSsh", "true")
 
     authMethod = uploadedKey {
@@ -39,11 +37,9 @@ object RepoVcs : GitVcsRoot({
 object Build : BuildType({
     name = "Build"
 
-    // Publish the ZIP produced by Maven (version-agnostic)
     artifactRules = "target/repro-docs-*.zip"
 
     params {
-        // Set this to a full commit SHA when starting the build
         param("env.GIT_COMMIT", "")
     }
 
@@ -51,8 +47,6 @@ object Build : BuildType({
         root(RepoVcs)
         cleanCheckout = true
         checkoutMode = CheckoutMode.ON_AGENT
-        // If ON_AGENT enum is unavailable on your server, use:
-        // param("teamcity.checkoutMode", "ON_AGENT")
     }
 
     steps {
@@ -89,7 +83,6 @@ object Build : BuildType({
     features {
         perfmon {}
         sshAgent {
-            // Loads the same key into ssh-agent for your shell steps
             teamcitySshKey = "tc-release-bot"
         }
     }
