@@ -26,7 +26,7 @@
             <directoryMode>0755</directoryMode>
             <useDefaultExcludes>true</useDefaultExcludes>
             <includes>
-                <include>release.txt</include>
+                <include>*</include>
             </includes>
         </fileSet>
     </fileSets>
