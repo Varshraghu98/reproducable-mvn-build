@@ -38,7 +38,7 @@ echo "→ Branch     : $PARENT_REPO_TARGET_BRANCH"
 # Ensure we are on the target branch
 git fetch origin "$PARENT_REPO_TARGET_BRANCH"
 git checkout "$PARENT_REPO_TARGET_BRANCH"
-git pull --rebase origin "$PARENT_REPO_TARGET_BRANCH"
+git reset --hard "origin/$PARENT_REPO_TARGET_BRANCH"
 
 # Clone notes repo at the exact commit (shallow, temp dir)
 TEMP_NOTES_CLONE_DIR="$(mktemp -d)"
@@ -123,7 +123,6 @@ git config --local user.email "$GIT_USER_EMAIL"
 
 SHORT_NOTES_COMMIT="$(git -C "$TEMP_NOTES_CLONE_DIR/notes" rev-parse --short "$NOTES_SOURCE_COMMIT_SHA")"
 git commit -m "docs(notes): vendor ${RELEASE_NOTES_FILENAME} @ ${SHORT_NOTES_COMMIT}"
-git pull --rebase origin "$PARENT_REPO_TARGET_BRANCH"
 git push origin HEAD:"$PARENT_REPO_TARGET_BRANCH"
 
 echo "✓ Pushed vendored notes ($RELEASE_NOTES_FILENAME) to $PARENT_REPO_TARGET_BRANCH"
