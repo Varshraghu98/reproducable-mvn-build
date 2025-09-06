@@ -84,25 +84,15 @@ TMP_MANIFEST="$LOCAL_MANIFEST_PATH.tmp"
 
 } > "$TMP_MANIFEST"
 
-# Remove lines we’ll re-define
-# Use portable sed across GNU/BSD
+
 sed -i.bak -E \
   -e '/^release_notes_repo_commit=/d' \
-  -e '/^release_notes_source_path=/d' \
-  -e '/^release_notes_filename=/d' \
-  -e '/^release_notes_sha256=/d' \
-  -e '/^release_notes_fetched_at=/d' \
   "$TMP_MANIFEST"
 rm -f "$TMP_MANIFEST.bak"
 
-# Append our provenance block
 {
   echo "release_notes_repo_commit=$NOTES_SOURCE_COMMIT_SHA"
-  echo "release_notes_source_path=$REL_PATH"
-  echo "release_notes_filename=$RELEASE_NOTES_FILENAME"
-  echo "release_notes_sha256=$CHECKSUM"
   # Use RFC3339 UTC
-  date -u +'"release_notes_fetched_at=%Y-%m-%dT%H:%M:%SZ"' | tr -d '"'
 } >> "$TMP_MANIFEST"
 
 # Atomic move
