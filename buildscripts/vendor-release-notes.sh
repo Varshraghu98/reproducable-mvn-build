@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -eu
 
+git config --show-origin --get-regexp '^user\.'
+git config --local --unset-all user.name  || true
+git config --local --unset-all user.email || true
+
 # Config (override via env or TeamCity params if needed)
 : "${GITHUB_NOTES_REPO:=Varshraghu98/release-notes}"   # owner/repo of notes source
 : "${VENDOR_DIR:=vendor/release-notes}"                # parent repo path to place vendored files
