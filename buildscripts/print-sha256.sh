@@ -7,10 +7,10 @@ OUTPUT_DIR="${OUTPUT_DIR:-$CHECKOUT_DIR/target}"
 DOCS_PATTERN="${DOCS_PATTERN:-repro-docs-*.zip}"
 
 echo "Searching for ZIPs in: $OUTPUT_DIR (pattern: $DOCS_PATTERN)"
-# Find all matching ZIP files
+# Finds all matching ZIP files
 matches=$(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "$DOCS_PATTERN" -print)
 
-# Generate sha256 checksum for each found ZIP
+# Generates sha256 checksum for each found ZIP
 if [ -z "$matches" ]; then
   echo "No reproducible docs ZIPs found under $OUTPUT_DIR matching $DOCS_PATTERN"
 fi

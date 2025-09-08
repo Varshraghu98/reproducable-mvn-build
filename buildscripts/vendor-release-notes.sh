@@ -9,7 +9,6 @@ set -eu
 : "${PR_BASE:=main}"                                   # parent repo branch to update, can be confgured to any branch
 : "${REL_PATH:?REL_PATH must be set}"
 
-
 git config --show-origin --get-regexp '^user\.'
 git config --local --unset-all user.name  || true
 git config --local --unset-all user.email || true
@@ -19,7 +18,7 @@ NOTES_SOURCE_GIT_REPO="$GITHUB_NOTES_REPO"
 VENDORED_NOTES_DIR="$VENDOR_DIR"
 PARENT_REPO_TARGET_BRANCH="$PR_BASE"
 
-# Resolve which commit of release-notes repo to vendor
+# Resolves which commit of release-notes repo to vendor
 if [ -n "${NOTES_SHA:-}" ]; then
   NOTES_SOURCE_COMMIT_SHA="$NOTES_SHA"
 elif [ -f ".dep/update-notes/notes-sha.txt" ]; then
@@ -64,7 +63,7 @@ TARGET_FILE="$VENDORED_NOTES_DIR/$RELEASE_NOTES_FILENAME"
 git -C "$TEMP_NOTES_CLONE_DIR/notes" show "$NOTES_SOURCE_COMMIT_SHA:$REL_PATH" > "$TARGET_FILE"
 echo "✓ Copied $REL_PATH → $TARGET_FILE"
 
-# Compute checksum (for reproducible builds verification)
+# Computing checksum (for reproducible builds verification)
 CHECKSUM="$($SHA256_TOOL "$TARGET_FILE" | awk '{print $1}')"
 echo "✓ SHA-256: $CHECKSUM"
 
@@ -91,7 +90,7 @@ rm -f "$TMP_MANIFEST.bak"
 mv "$TMP_MANIFEST" "$LOCAL_MANIFEST_PATH"
 echo "✓ Wrote manifest: $LOCAL_MANIFEST_PATH"
 
-# Stage and commit only if there are actual changes
+# Staging and committing only if there are actual changes
 git add "$TARGET_FILE" "$LOCAL_MANIFEST_PATH" 2>/dev/null || true
 if git diff --cached --quiet; then
   echo "No changes in vendor directory. Nothing to push."
