@@ -63,6 +63,9 @@ https://downloads.mysql.com/docs/mysql-9.0-relnotes-en.pdf
 - Once the required dsl is loaded from VCS the jobs structure will look like 
 ![img.png](img.png)
 
+Note: When a build script is pushing contents to the repository are pushing to the main branch at the moment.
+TODO: Implement PR flow feature.
+
 
 
 
