@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 set -eu
 
+
+
+# Config (override via env or TeamCity params)
+: "${GITHUB_NOTES_REPO:=Varshraghu98/release-notes}"   # owner/repo of notes source
+: "${VENDOR_DIR:=vendor/release-notes}"                # parent repo path to place vendored files
+: "${PR_BASE:=main}"                                   # parent repo branch to update, can be confgured to any branch
+: "${REL_PATH:?REL_PATH must be set}"
+
+
 git config --show-origin --get-regexp '^user\.'
 git config --local --unset-all user.name  || true
 git config --local --unset-all user.email || true
-
-# Config (override via env or TeamCity params if needed)
-: "${GITHUB_NOTES_REPO:=Varshraghu98/release-notes}"   # owner/repo of notes source
-: "${VENDOR_DIR:=vendor/release-notes}"                # parent repo path to place vendored files
-: "${PR_BASE:=main}"                                   # parent repo branch to update
-: "${REL_PATH:?REL_PATH must be set (e.g. docs/mysql-9.0-relnotes-en.pdf)}"
 
 
 NOTES_SOURCE_GIT_REPO="$GITHUB_NOTES_REPO"
@@ -37,7 +40,7 @@ git fetch origin "$PARENT_REPO_TARGET_BRANCH"
 git checkout "$PARENT_REPO_TARGET_BRANCH"
 git reset --hard "origin/$PARENT_REPO_TARGET_BRANCH"
 
-# Clone notes repo at the exact commit (shallow, temp dir)
+# Clone notes repo at the exact commit
 TEMP_NOTES_CLONE_DIR="$(mktemp -d)"
 cleanup() { rm -rf "$TEMP_NOTES_CLONE_DIR"; }
 trap cleanup EXIT
@@ -94,12 +97,6 @@ if git diff --cached --quiet; then
   echo "No changes in vendor directory. Nothing to push."
   exit 0
 fi
-
-# Commit and push changes with bot identity
-: "${GIT_USER_NAME:=TeamCity Bot}"
-: "${GIT_USER_EMAIL:=tc-bot@example.invalid}"
-git config --local user.name  "$GIT_USER_NAME"
-git config --local user.email "$GIT_USER_EMAIL"
 
 SHORT_NOTES_COMMIT="$(git -C "$TEMP_NOTES_CLONE_DIR/notes" rev-parse --short "$NOTES_SOURCE_COMMIT_SHA")"
 git commit -m "docs(notes): vendor ${RELEASE_NOTES_FILENAME} @ ${SHORT_NOTES_COMMIT}"
